@@ -1,68 +1,53 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Test scripts for [TF SPA infrastructure module](https://github.com/calinmarina/tf_aws_hosted_spa_infra_template_module)
+====
 
-## Available Scripts
+The exercise proposed was a terraform module to build the basic infrastructure for an SPA webpage that serves the content from two AWS S3 buckets, static content being a requirement to reside in separate bucket than the rest of the app.
 
-In the project directory, you can run:
+## Module should
+- take the ARN of an ACM certificate as a parameter.
+- create the necessary S3 bucket with best practices configuration.
+- create route53 HostedZone.
+- create CloudFront web distribution.
+- create relevant DNS entries pointing to the distribution.
+- IP protection implemented as desired.
+- (Bonus): implement basic authentication protection for the distribution. (Can be a static username + password)
 
-### `npm start`
+## Considerations:
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+This repo is a quick showcase/runner of the referenced module, best practice would be to setup a CI/CD pipeline directly in the module repo which is why this will soon become useless as all steps in that pipeline would be:
+1. Create Route53 hosted zone for test domain
+2. Create a verified ACM certificate for the test domain
+3. Spin up a docker container to build the SPA and produce the build folder we need for deployment in S3 buckets (see Deployment section below)
+4. Having the preconditinos for out module ready we can call our TF module to create de infrastructure which consists of creating an configuring the S3 buckets accessible via OAI by the CloudFront distribution only.
+Note. the IP protection involves creation of a WAF WebACL IP rule which is included but [commented](https://github.com/calinmarina/tf_aws_hosted_spa_infra_template_module/blob/0ff156576187d7944cac158875fcba454e9eb386/main.tf#L169) and same for the [attachment to our CloudFront distribution](https://github.com/calinmarina/tf_aws_hosted_spa_infra_template_module/blob/0ff156576187d7944cac158875fcba454e9eb386/main.tf#L164) due to need for a bit of elaboration on the requirement like:
+- do we want to have the IP list as an input parameter?
+- do we have a certain range we, by default exclude?
+- is there a Geographical restriction we want to impose? ... that will require a different configuration of CF
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## Steps to achieve the installation
+see https://calinmarina.ml/ for a successful running result 
 
-### `npm test`
+### 1. Prepare SPA deployment files
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+run `npm run build` builds the app for production to the `build` folder.<br />
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The SPA project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and there is no other modification to it as of now. 
+This correctly bundles React in production mode and optimizes the build for the best performance.
 
 The build is minified and the filenames include the hashes.<br />
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2. Run terraform scripts
 
-### `npm run eject`
+`terraform apply`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+This will create:
+- Rote 53 hosted zone
+- create certificate in ACM and verify it
+- invoke the module under test ([see module usage](https://github.com/calinmarina/tf_aws_hosted_spa_infra_template_module))
+- upload build directory into the two S3 buckets
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+*Notes.* 
+- First run might timeout because ACM certificate validation takes a bit longer. Just run `terraform apply` angain after the certificate in ACM shows a green Issued state
+- make sure to configure terraform provider credentials in `providers.tf`
+- if your domain registrar is not AWS Route 53 you will have to change the the `Name servers` for your domain with the ones allocated by AWS to your `Hosted zone` otherwise AWS will handle this smoothly
