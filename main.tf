@@ -57,8 +57,7 @@ resource "aws_acm_certificate_validation" "cert" {
 }
 
 module "aws_s3_hosted_spa_infra_template" {
-  # source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
-  source = "../aws_s3_hosted_spa_infra_template"
+  source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
   domain = {
     "name" : var.domain,
     "zone_id" : aws_route53_zone.route_zone.zone_id
