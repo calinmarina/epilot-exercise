@@ -1,10 +1,7 @@
-variable "domain" {
+variable "domain_name" {
   default = "calinmarina.ml"
   #default = "marinaconsult.co.uk"
 }
-
-# variable "certificate_arn" {
-# }
 
 variable "env" {
   default = "production"
