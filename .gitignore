@@ -8,8 +8,8 @@ lerna-debug.log*
 
 # Terraform
 .terraform
-*.tfstate.*
-
+*.tfstate*
+terraform.tfstate
 build/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
