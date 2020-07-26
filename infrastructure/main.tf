@@ -10,39 +10,40 @@ locals {
   }
 }
 
-module "prepare_zone_and_certificate" "prerequisites" {
-  source = "infrastructure/modules/prepare_zone_and_certificate"
+module "prepare_zone_and_certificate" {
+  source = "./modules/prepare_zone_and_certificate"
   domain_name = var.domain_name
   env = var.env
   region = var.region
 }
 
-module "aws_s3_hosted_spa_infra_template" "spa_infra" {
-  source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
+module "aws_s3_hosted_spa_infra_template" {
+  # source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
+  source = "../../aws_s3_hosted_spa_infra_template"
   domain = {
     "name" : var.domain_name,
-    "zone_id" : module.prepare_zone_and_certificate.prerequisites.route_zone_id
+    "zone_id" : module.prepare_zone_and_certificate.route_zone_id
   }
-  certificate_arn = module.prepare_zone_and_certificate.prerequisites.certificate_arn
+  certificate_arn = module.prepare_zone_and_certificate.certificate_arn
 }
 
 # Upload content to S3 bucket
 resource "aws_s3_bucket_object" "webapp" {
-  for_each = fileset("./build", "*")
+  for_each = fileset("../build", "*")
 
-  bucket       = module.aws_s3_hosted_spa_infra_template.spa_infra.s3_bucket
+  bucket       = module.aws_s3_hosted_spa_infra_template.s3_bucket
   key          = each.value
-  source       = "./build/${each.value}"
+  source       = "../build/${each.value}"
   content_type = lookup(local.mime_type_mappings, concat(regexall("\\.([^\\.]*)$", each.value), [[""]])[0][0], "application/octet-stream")
-  etag         = filemd5("./build/${each.value}")
+  etag         = filemd5("../build/${each.value}")
 }
 
 resource "aws_s3_bucket_object" "webapp-static" {
-  for_each = fileset("./build/static", "**")
+  for_each = fileset("../build/static", "**")
 
   bucket       = module.aws_s3_hosted_spa_infra_template.s3_static_bucket
   key          = "static/${each.value}"
-  source       = "./build/static/${each.value}"
+  source       = "../build/static/${each.value}"
   content_type = lookup(local.mime_type_mappings, concat(regexall("\\.([^\\.]*)$", each.value), [[""]])[0][0], "application/octet-stream")
-  etag         = filemd5("./build/static/${each.value}")
+  etag         = filemd5("../build/static/${each.value}")
 }
