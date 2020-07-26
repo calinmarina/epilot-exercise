@@ -18,8 +18,7 @@ module "prepare_zone_and_certificate" {
 }
 
 module "aws_s3_hosted_spa_infra_template" {
-  # source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
-  source = "../../aws_s3_hosted_spa_infra_template"
+  source = "git::git@github.com:calinmarina/tf_aws_hosted_spa_infra_template_module.git?ref=master"
   domain = {
     "name" : var.domain_name,
     "zone_id" : module.prepare_zone_and_certificate.route_zone_id
