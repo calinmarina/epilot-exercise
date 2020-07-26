@@ -1,3 +1,7 @@
+... updating for new running procedure ... pending PR testing
+
+```bash execute.sh <domain_name> [<region>]```
+
 Test scripts for [TF SPA infrastructure module](https://github.com/calinmarina/tf_aws_hosted_spa_infra_template_module)
 ====
 
