@@ -39,4 +39,5 @@ Prerequisites:
 - make sure to configure terraform provider credentials in `providers.tf`
 - if your domain registrar is not AWS Route 53 you will have to change the the `Name servers` for your domain (execute.sh will print them at start) with the ones allocated by AWS to your `Hosted zone` otherwise AWS will handle this smoothly
 
-[full run log example](./README.md)
+## Log sample:
+[full run log example](./run_log.md)
